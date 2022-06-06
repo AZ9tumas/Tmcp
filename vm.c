@@ -81,9 +81,9 @@ static InterpretResult run() {
                 return INTERPRET_OK;
             }
             case OP_ADD: Binary_op(OP_ADD); break;
-            case OP_DIV: BINARY_OP(-); break;
+            case OP_DIV: BINARY_OP(/); break;
             case OP_MUL: BINARY_OP(*); break;
-            case OP_SUB: BINARY_OP(/); break;
+            case OP_SUB: BINARY_OP(-); break;
             default: printf("Cannot understand a specific instruction\n");
         }
     }
@@ -94,6 +94,21 @@ static InterpretResult run() {
 }
 
 InterpretResult interpret(const char* source){
-    compile(source);
-    return INTERPRET_OK;
+    Chunk chunk;
+    initChunk(&chunk);
+
+    if (!compile(source, &chunk)){
+        freeChunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+
+    InterpretResult result = run();
+
+    //disassembleChunk(&chunk, "<repl>");
+    
+    freeChunk(&chunk);
+    return result;
 }
