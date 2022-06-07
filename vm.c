@@ -107,7 +107,7 @@ InterpretResult interpret(const char* source){
 
     InterpretResult result = run();
 
-    //disassembleChunk(&chunk, "<repl>");
+    disassembleChunk(&chunk, "<repl>");
     
     freeChunk(&chunk);
     return result;
