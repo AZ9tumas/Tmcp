@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef DEBUG_PRINT_CODE
+    #include "debug.h"
+#endif
+
 typedef struct {
     Token current;
     Token previous;
@@ -17,6 +21,10 @@ typedef struct {
 Parser parser;
 
 Chunk* compilingChunk;
+
+static void factor();
+static void term();
+static void expression();
 
 static Chunk* currentChunk(){
     return compilingChunk;
@@ -112,6 +120,12 @@ static void emitConstant(Value value){
 
 static void endCompiler(){
     emitReturn();
+
+    #ifdef DEBUG_PRINT_CODE
+        if (!parser.hadError){
+            disassembleChunk(currentChunk(), "op codes");
+        }
+    #endif
 }
 
 static void number(){
@@ -119,9 +133,19 @@ static void number(){
     emitConstant(num);
 }
 
+static void group_paren(){
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expected ')' to close '('");
+}
+
 static void factor(){
     if (match_a(TOKEN_NUMBER)){
         number();
+    } else if (match_a(TOKEN_LEFT_PAREN)){
+        group_paren();
+    } else if (match_a(TOKEN_MINUS)){
+        factor(); // The number
+        emitByte(OP_NEGATE);
     }
 }
 
